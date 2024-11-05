@@ -49,22 +49,21 @@ if __name__ == "__main__":
     # Create instances with the correct security groups and configurations
 
     # MySQL Manager Instance (internal)
-    i.createInternalInstance('t2.micro', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'manager')
+    # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
+    i.createInternalInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, blank_userdata, 'manager')
 
-    # # 2x MySQL Worker Instances (internal)
-    # i.createInternalInstance('t2.micro', 2, 2, key_pair, private_security_id, subnet_id, blank_userdata, 'worker-instance')
-
-    # MySQL Cluster Manager Instance (internal)
-    i.createInternalInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'mysql_cluster_manager')
+    # 2x MySQL Worker Instances (internal)
+    # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
+    i.createInternalInstance('t2.micro', 2, 2, key_pair, gatekeeper_security_id, subnet_id, blank_userdata, 'worker-instance')
 
     # Proxy Instance (internal)
-    i.createInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'proxy')
+    # i.createInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'proxy')
 
     # Gatekeeper Instance (public)
-    i.createInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, blank_userdata, 'gatekeeper')
+    # i.createInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, blank_userdata, 'gatekeeper')
 
     # Trusted Host Instance (internal)
-    i.createInternalInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'trusted-host')
+    # i.createInternalInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'trusted-host')
 
 
     # time.sleep(240)
