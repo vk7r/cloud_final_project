@@ -20,3 +20,4 @@ def random_endpoint():
 @app.route('/custom')
 def custom_endpoint():
     # Forward the requests to the node with the least response time
+    pass
