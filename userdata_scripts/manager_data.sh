@@ -51,8 +51,9 @@ cd sakila-db
 mysql -u root -p"$MYSQL_ROOT_PASSWORD" < sakila-schema.sql
 mysql -u root -p"$MYSQL_ROOT_PASSWORD" < sakila-data.sql
 
-# Log the master status for reference (optional, for debugging)
-MASTER_STATUS_FILE="/var/log/mysql-master-status.log"
-sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SHOW MASTER STATUS\G" | sudo tee "$MASTER_STATUS_FILE"
+# Log the master status for reference
+MASTER_INFO_FILE="/home/ubuntu/MASTER_INFO.txt"
+sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SHOW MASTER STATUS\G" > "$MASTER_INFO_FILE"
+
 
 echo "MySQL master instance setup completed with Sakila database for replication."
