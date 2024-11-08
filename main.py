@@ -8,7 +8,7 @@ import stat
 from utils import instance_setup as i
 from utils import transfer_json_file as tj
 from utils import util_functions as u
-
+from userdata_scripts import generate_user_data as ud
 
 if __name__ == "__main__":
 
@@ -45,6 +45,16 @@ if __name__ == "__main__":
     with open('userdata_scripts/manager_data.sh', 'r') as file:
         manager_userdata = file.read()
 
+    with open('userdata_scripts/gateway_userdata.sh', 'r') as file:
+        gateway_userdata = file.read()
+
+    with open('userdata_scripts/proxy_userdata.sh', 'r') as file:
+        proxy_userdata = file.read()
+
+    with open('userdata_scripts/trusted_host_userdata.sh', 'r') as file:
+        th_userdata = file.read()
+
+
     # with open('userdata_scripts/worker_data.sh', 'r') as file:
     #     worker_userdata = file.read()
 
@@ -52,15 +62,23 @@ if __name__ == "__main__":
 
     # MySQL Manager Instance (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
-    # TODO: ALSO MAKE IT AS STRING, MAKE PASSWORD AND OTHER VARIABLES GLOBALS
-    i.createInternalInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, manager_userdata, 'manager')
+    i.createInternalInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, manager_userdata, 'db_manager')
 
-    time.sleep(100) # Wait for manager to be ready
+    time.sleep(180) # Wait for manager to be ready
+
+    # Transfer the master config to this machine
+    u.transfer_file_from_ec2(u.get_manager_instance_id(), "/home/ubuntu/MASTER_INFO.txt","config/MASTER_STATUS.txt", g.pem_file_path)
+    # Parse the txt output and save it as a json file
+    u.parse_master_status("config/MASTER_STATUS.txt", "config/MASTER_CONFIG.json")
+    master_config = u.load_config("config/MASTER_CONFIG.json")
 
 
     MANAGER_PRIVATE_IP = u.get_manager_private_ip()
     print(f"##########\n\nMANAGER PRIVATE IP: {MANAGER_PRIVATE_IP}\n\n#############")
 
+    # Configure the database workers userdata
+    # worker_userdata = ud.generate_worker_userdata(MANAGER_PRIVATE_IP, master_config["File"], master_config["Position"])
+    
     # TODO: MAKE AS FUNCTION
     worker_userdata = f"""#!/bin/bash
 
@@ -111,8 +129,8 @@ if __name__ == "__main__":
     REPLICATION_PASSWORD="replication_password"
 
     # Get the master's log file and position
-    MASTER_LOG_FILE="mysql-bin.000001"  # Replace with the actual log file from master
-    MASTER_LOG_POS=1360569              # Replace with the actual log position from master
+    MASTER_LOG_FILE="{master_config["File"]}"  # Replace with the actual log file from master
+    MASTER_LOG_POS={master_config["Position"]}              # Replace with the actual log position from master
 
     # Set up replication on the slave
     sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CHANGE MASTER TO MASTER_HOST='$MANAGER_IP', MASTER_USER='$REPLICATION_USER', MASTER_PASSWORD='$REPLICATION_PASSWORD', MASTER_LOG_FILE='$MASTER_LOG_FILE', MASTER_LOG_POS=$MASTER_LOG_POS;"
@@ -126,20 +144,26 @@ if __name__ == "__main__":
     """
 
 
-
     # 2x MySQL Worker Instances (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
     print("Creating workers")
-    i.createInternalInstance('t2.micro', 2,2, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'worker-instance')
+    i.createInternalInstance('t2.micro', 1,1, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'db_worker1')
+    i.createInternalInstance('t2.micro', 1,1, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'db_worker2')
 
     # Proxy Instance (internal)
-    # i.createInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'proxy')
+    i.createInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, proxy_userdata, 'proxy')
 
     # Gatekeeper Instance (public)
-    # i.createInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, blank_userdata, 'gatekeeper')
+    i.createInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, gateway_userdata, 'gatekeeper')
 
     # Trusted Host Instance (internal)
-    # i.createInternalInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'trusted-host')
+    i.createInternalInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, th_userdata, 'trusted-host')
+
+
+    # u.ssh_and_run_command_tmux()
+
+
+    # TODO: AFTER CONFIG CHANGE THE SECURITY GROUPS TO PRIVATE!!!
 
 
     # time.sleep(240)
