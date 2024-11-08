@@ -196,3 +196,35 @@ def get_orchestrator_instance_ip():
     
     print("No running orchestrator-instance found or the instance does not have a public IP address.")
     return None
+
+
+"""
+Retrieves the private IP address of an EC2 instance with the tag Name='manager'.
+
+Returns:
+- str: The private IP address of the instance if found, otherwise None.
+"""
+def get_manager_private_ip():
+    # Initialize the Boto3 session and EC2 client
+    session = boto3.Session(region_name='us-east-1')
+    ec2_client = session.client('ec2')
+
+    # Filter instances by tag Name='manager'
+    try:
+        response = ec2_client.describe_instances(
+            Filters=[
+                {'Name': 'tag:Name', 'Values': ['manager']},
+                {'Name': 'instance-state-name', 'Values': ['running']}
+            ]
+        )
+        # Extract the private IP from the response
+        reservations = response.get('Reservations')
+        if reservations:
+            private_ip = reservations[0]['Instances'][0].get('PrivateIpAddress')
+            return private_ip
+        else:
+            print("No running instance found with Name='manager'")
+            return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None    
