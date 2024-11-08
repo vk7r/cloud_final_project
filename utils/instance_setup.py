@@ -15,12 +15,12 @@ def createPublicSecurityGroup(vpc_id: str, group_name: str):
 
     # Create the security group
     response = ec2.create_security_group(GroupName=group_name,
-                                         Description='Security group for Flask application',
+                                         Description='Security group for Flask application and MySQL replication',
                                          VpcId=vpc_id)
     security_group_id = response.group_id
     print(f'Security Group Created {security_group_id} in vpc {vpc_id}.')
 
-    # Add ingress rules to allow inbound traffic on ports 5000, 5001, 80 (HTTP), and 22 (SSH)
+    # Add ingress rules to allow inbound traffic on ports 5000, 5001, 80 (HTTP), 22 (SSH), and 3306 (MySQL)
     ec2.SecurityGroup(security_group_id).authorize_ingress(
         GroupId=security_group_id,
         IpPermissions=[
@@ -38,10 +38,32 @@ def createPublicSecurityGroup(vpc_id: str, group_name: str):
                 'ToPort': 22,
                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
             },
+            # Allow Flask application traffic on port 5000
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 5000,
+                'ToPort': 5000,
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            },
+            # Allow Flask application traffic on port 5001
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 5001,
+                'ToPort': 5001,
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            },
+            # Allow MySQL replication traffic on port 3306
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 3306,
+                'ToPort': 3306,
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            },
         ]
     )
 
     return security_group_id
+
 
 
 '''
