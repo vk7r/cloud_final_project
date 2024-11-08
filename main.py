@@ -52,13 +52,16 @@ if __name__ == "__main__":
 
     # MySQL Manager Instance (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
+    # TODO: ALSO MAKE IT AS STRING, MAKE PASSWORD AND OTHER VARIABLES GLOBALS
     i.createInternalInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, manager_userdata, 'manager')
 
-    time.sleep(100)
+    time.sleep(100) # Wait for manager to be ready
+
 
     MANAGER_PRIVATE_IP = u.get_manager_private_ip()
     print(f"##########\n\nMANAGER PRIVATE IP: {MANAGER_PRIVATE_IP}\n\n#############")
 
+    # TODO: MAKE AS FUNCTION
     worker_userdata = f"""#!/bin/bash
 
     # Update and install MySQL
@@ -126,7 +129,8 @@ if __name__ == "__main__":
 
     # 2x MySQL Worker Instances (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
-    i.createInternalInstance('t2.micro', 1,1, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'worker-instance')
+    print("Creating workers")
+    i.createInternalInstance('t2.micro', 2,2, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'worker-instance')
 
     # Proxy Instance (internal)
     # i.createInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, blank_userdata, 'proxy')
