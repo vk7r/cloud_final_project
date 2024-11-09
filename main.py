@@ -75,7 +75,6 @@ if __name__ == "__main__":
 
 
     MANAGER_PRIVATE_IP = u.get_manager_private_ip()
-    print(f"##########\n\nMANAGER PRIVATE IP: {MANAGER_PRIVATE_IP}\n\n#############")
 
     # Configure the database workers userdata
     # worker_userdata = ud.generate_worker_userdata(MANAGER_PRIVATE_IP, master_config["File"], master_config["Position"])
@@ -165,9 +164,14 @@ if __name__ == "__main__":
     # Transfer instance_ips.json to every instance
     tj.transfer_json_file_to_all(pem_file_path, "instance_ips.json")
 
-    # TODO: AFTER CONFIG CHANGE THE SECURITY GROUPS TO PRIVATE!!!
+    print("starting all falsk apps...")
+    time.sleep(240)
 
+    u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("proxy"), g.pem_file_path, "nohup python3 proxy_app.py  > app.log 2>&1 &")
 
     # time.sleep(240)
 
+    # TODO: AFTER CONFIG CHANGE THE SECURITY GROUPS TO PRIVATE!!!
     
