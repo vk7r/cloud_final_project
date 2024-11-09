@@ -52,6 +52,20 @@ def createPublicSecurityGroup(vpc_id: str, group_name: str):
                 'ToPort': 5001,
                 'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
             },
+            # Allow Flask application traffic on port 5002
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 5002,
+                'ToPort': 5002,
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            },
+            # Allow Flask application traffic on port 5003
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 5003,
+                'ToPort': 5003,
+                'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+            },
             # Allow MySQL replication traffic on port 3306
             {
                 'IpProtocol': 'tcp',
