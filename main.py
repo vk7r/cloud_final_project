@@ -8,6 +8,7 @@ import stat
 from utils import instance_setup as i
 from utils import transfer_json_file as tj
 from utils import util_functions as u
+from utils import create_ip_list as cip
 from userdata_scripts import generate_user_data as ud
 
 if __name__ == "__main__":
@@ -39,8 +40,8 @@ if __name__ == "__main__":
     os.chmod(pem_file_path, stat.S_IRUSR) # Change file permissions to 400 to protect the private key
 
     # Create the required security groups
-    gatekeeper_security_id = i.createPublicSecurityGroup(vpc_id, g.public_security_group_name)
-    private_security_id = i.createInternalSecurityGroup(vpc_id, g.internal_security_group_name, gatekeeper_security_id)
+    public_security_id = i.createPublicSecurityGroup(vpc_id, g.public_security_group_name)
+    private_security_id = i.createInternalSecurityGroup(vpc_id, g.internal_security_group_name, public_security_id)
 
     with open('userdata_scripts/manager_data.sh', 'r') as file:
         manager_userdata = file.read()
@@ -62,7 +63,7 @@ if __name__ == "__main__":
 
     # MySQL Manager Instance (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
-    i.createInternalInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, manager_userdata, 'db_manager')
+    i.createInternalInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, manager_userdata, 'db_manager')
 
     time.sleep(180) # Wait for manager to be ready
 
@@ -147,21 +148,22 @@ if __name__ == "__main__":
     # 2x MySQL Worker Instances (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
     print("Creating workers")
-    i.createInternalInstance('t2.micro', 1,1, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'db_worker1')
-    i.createInternalInstance('t2.micro', 1,1, key_pair, gatekeeper_security_id, subnet_id, worker_userdata, 'db_worker2')
+    i.createInternalInstance('t2.micro', 1,1, key_pair, public_security_id, subnet_id, worker_userdata, 'db_worker1')
+    i.createInternalInstance('t2.micro', 1,1, key_pair, public_security_id, subnet_id, worker_userdata, 'db_worker2')
 
     # Proxy Instance (internal)
-    i.createInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, proxy_userdata, 'proxy')
+    i.createInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, proxy_userdata, 'proxy')
 
     # Gatekeeper Instance (public)
-    i.createInstance('t2.large', 1, 1, key_pair, gatekeeper_security_id, subnet_id, gateway_userdata, 'gatekeeper')
+    i.createInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, gateway_userdata, 'gatekeeper')
 
     # Trusted Host Instance (internal)
-    i.createInternalInstance('t2.large', 1, 1, key_pair, private_security_id, subnet_id, th_userdata, 'trusted-host')
+    i.createInternalInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, th_userdata, 'trusted-host')
 
-
-    # u.ssh_and_run_command_tmux()
-
+    cip.fetch_and_save_instance_ips()
+    
+    # Transfer instance_ips.json to every instance
+    tj.transfer_json_file_to_all(pem_file_path, "instance_ips.json")
 
     # TODO: AFTER CONFIG CHANGE THE SECURITY GROUPS TO PRIVATE!!!
 
