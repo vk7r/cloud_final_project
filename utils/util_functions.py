@@ -222,6 +222,37 @@ def get_manager_instance_id():
     print("No running orchestrator-instance found.")
     return None
 
+def get_instance_id_by_name(instance_name):
+    # Initialize the EC2 client
+    ec2_client = boto3.client('ec2')
+
+    # Describe all running EC2 instances with the 'orchestrator-instance' tag
+    response = ec2_client.describe_instances(
+        Filters=[
+            {
+                'Name': 'tag:Name',  # Filter by the 'Name' tag
+                'Values': [instance_name]  # Only instances with the 'orchestrator-instance' tag
+            },
+            {
+                'Name': 'instance-state-name',
+                'Values': ['running']  # Only running instances
+            }
+        ]
+    )
+
+    # Extract the details of the orchestrator instance
+    for reservation in response['Reservations']:
+        for instance in reservation['Instances']:
+            instance_id = instance['InstanceId']
+            # print(f"Orchestrator Instance Found: Instance ID: {instance_id}")
+            
+            # Return the Instance ID
+            return instance_id
+    
+    print("No running orchestrator-instance found.")
+    return None
+
+
 
 
 def get_orchestrator_instance_ip():
