@@ -32,7 +32,7 @@ def process_request():
     data = request.json
 
     # Basic validation of the request
-    if 'operation' not igunicorn --bind 0.0.0.0:80 gateway_app:appn data or 'query' not in data:
+    if 'operation' not in data or 'query' not in data:
         return jsonify({"error": "Invalid request"}), 400
 
     # Forward validated requests to the Trusted Host using its private IP

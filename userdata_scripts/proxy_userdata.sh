@@ -38,22 +38,8 @@ def process_request():
     print("##########\n\nReceived request IN PROXY\n\n##########")
     
     data = request.json
-    query = data.get('query')
-    
-    # Validate the query presence
-    if not query:
-        return jsonify({"error": "No query provided"}), 400
 
-    # Determine if the query is read (SELECT) or write (INSERT, UPDATE, DELETE)
-    if query.strip().upper().startswith('SELECT'):
-        # Route to one of the worker nodes for read operations
-        worker_db_ip = select_worker()
-        response = requests.post(f"http://{worker_db_ip}:5003/execute", json={"query": query})
-    else:
-        # Route to the manager node for write operations
-        response = requests.post(f"http://{manager_db_ip}:5003/execute", json={"query": query})
-
-    return response.json(), response.status_code
+    return data
 
 # Worker selection logic (random selection for load balancing)
 def select_worker():
