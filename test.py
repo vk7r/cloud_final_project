@@ -1,8 +1,21 @@
 import requests
 import json
+from utils import util_functions as u
+
+
+with open('instance_ips.json', 'r') as f:
+    instance_ips = json.load(f)
+
+try:
+    gatekeeper_ip = instance_ips["Gateway"]["public_ip"]
+except KeyError:
+    raise RuntimeError("IP not found in instance_ips.json")
+
+print(f"Gatekeeper IP: {gatekeeper_ip}")
+
 
 # Define the Gateway URL (replace with your Gateway's public IP)
-GATEWAY_URL = "http://54.86.57.191:5000/process"
+GATEWAY_URL = f"http://{gatekeeper_ip}:5000/process"
 
 # Define the payload for the request
 payload = {
@@ -23,3 +36,10 @@ try:
 
 except requests.exceptions.RequestException as e:
     print("An error occurred:", e)
+
+# from utils import util_functions as u
+# import globals as g
+
+# u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
+# u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
+# u.ssh_and_run_command(u.get_instance_ip_by_name("proxy"), g.pem_file_path, "nohup python3 proxy_app.py  > app.log 2>&1 &")
