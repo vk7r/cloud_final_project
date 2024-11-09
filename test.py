@@ -2,7 +2,7 @@ import requests
 import json
 
 # Define the Gateway URL (replace with your Gateway's public IP)
-GATEWAY_URL = "http://34.207.193.21:5000/process"
+GATEWAY_URL = "http://54.86.57.191:5000/process"
 
 # Define the payload for the request
 payload = {
@@ -23,4 +23,3 @@ try:
 
 except requests.exceptions.RequestException as e:
     print("An error occurred:", e)
-
