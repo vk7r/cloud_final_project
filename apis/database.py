@@ -1,15 +1,25 @@
 from flask import Flask, request, jsonify
 import mysql.connector
 from mysql.connector import Error
-import os
+import json
 
 app = Flask(__name__)
+
+# Load MySQL host IP from the JSON file
+with open('instance_ips.json', 'r') as f:
+    instance_ips = json.load(f)
+
+try:
+    # Assuming the MySQL server runs on the db_manager node
+    mysql_host_ip = instance_ips["db_manager"]["private_ip"]
+except KeyError:
+    raise RuntimeError("MySQL host IP (db_manager) not found in instance_ips.json")
 
 # MySQL connection configuration
 db_config = {
     'user': 'root',                # MySQL user (root)
     'password': 'hej',             # MySQL root password as per the setup script
-    'host': 'localhost',           # MySQL runs on the local instance
+    'host': mysql_host_ip,         # MySQL host IP from the JSON file
     'database': 'sakila'           # Using the Sakila database as configured
 }
 

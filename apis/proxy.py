@@ -1,14 +1,23 @@
 from flask import Flask, request, jsonify
 import random
 import requests
-import os
+import json
 
-# Load database IPs from environment variables
-manager_db_ip = os.getenv("MANAGER_DB_IP")
-worker_db_ips = os.getenv("WORKER_DB_IPS").split(",") if os.getenv("WORKER_DB_IPS") else []
+# Load database IPs from the JSON file
+with open('instance_ips.json', 'r') as f:
+    instance_ips = json.load(f)
 
-if not manager_db_ip or not worker_db_ips:
-    raise RuntimeError("Database IP environment variables not set")
+try:
+    # Manager DB IP
+    manager_db_ip = instance_ips["db_manager"]["private_ip"]
+    
+    # Worker DB IPs
+    worker_db_ips = [
+        instance_ips["db_worker1"]["private_ip"],
+        instance_ips["db_worker2"]["private_ip"]
+    ]
+except KeyError:
+    raise RuntimeError("Database IPs not found in instance_ips.json")
 
 app = Flask(__name__)
 
