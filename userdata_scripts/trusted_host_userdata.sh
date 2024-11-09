@@ -11,12 +11,16 @@ pip3 install flask torch transformers requests gunicorn --break-system-packages;
 cat <<EOF > /home/ubuntu/trusted_host_app.py
 from flask import Flask, request, jsonify
 import requests
-import os
+import json
 
-# Load the Proxy IP from environment variables
-proxy_ip = os.getenv("PROXY_IP")
-if not proxy_ip:
-    raise RuntimeError("PROXY_IP environment variable not set")
+# Load the Proxy IP from the JSON file
+with open('instance_ips.json', 'r') as f:
+    instance_ips = json.load(f)
+
+try:
+    proxy_ip = instance_ips["Proxy"]["private_ip"]
+except KeyError:
+    raise RuntimeError("Proxy private IP not found in instance_ips.json")
 
 app = Flask(__name__)
 

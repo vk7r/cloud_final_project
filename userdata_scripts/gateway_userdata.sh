@@ -11,12 +11,16 @@ pip3 install flask torch transformers requests gunicorn --break-system-packages;
 cat <<EOF > /home/ubuntu/gateway_app.py
 from flask import Flask, request, jsonify
 import requests
-import os
+import json
 
-# Load the Trusted Host IP from environment variables
-trusted_host_ip = os.getenv("TRUSTED_HOST_IP")
-if not trusted_host_ip:
-    raise RuntimeError("TRUSTED_HOST_IP environment variable not set")
+# Load the Trusted Host IP from the JSON file
+with open('instance_ips.json', 'r') as f:
+    instance_ips = json.load(f)
+
+try:
+    trusted_host_ip = instance_ips["Trusted_host"]["private_ip"]
+except KeyError:
+    raise RuntimeError("Trusted Host IP not found in instance_ips.json")
 
 app = Flask(__name__)
 
@@ -28,9 +32,8 @@ def process_request():
     data = request.json
 
     # Basic validation of the request
-    if 'operation' not in data or 'query' not in data:
+    if 'operation' not igunicorn --bind 0.0.0.0:80 gateway_app:appn data or 'query' not in data:
         return jsonify({"error": "Invalid request"}), 400
-        
 
     # Forward validated requests to the Trusted Host using its private IP
     trusted_host_url = f"http://{trusted_host_ip}:5001/process"
