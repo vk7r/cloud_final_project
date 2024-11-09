@@ -21,7 +21,7 @@ def ssh_and_run_py_script(instance_ip: str, pem_file_path: str, file_name :str):
         # Connect to the instance
         ssh.connect(instance_ip, username='ubuntu', key_filename=pem_file_path)
         
-        print(f"Connected, now running {file_name}.py...")
+        print(f"Connected, now running {file_name}...")
 
         # Run the command to execute the Python script
         stdin, stdout, stderr = ssh.exec_command(f'python3 {file_name}.py')
@@ -255,7 +255,7 @@ def get_instance_id_by_name(instance_name):
 
 
 
-def get_orchestrator_instance_ip():
+def get_instance_ip_by_name(instance_name):
     # Initialize the EC2 client
     ec2_client = boto3.client('ec2')
 
@@ -264,7 +264,7 @@ def get_orchestrator_instance_ip():
         Filters=[
             {
                 'Name': 'tag:Name',  # Filter by the 'Name' tag
-                'Values': ['orchestrator-instance']  # Only instances with the 'orchestrator-instance' tag
+                'Values': [instance_name]  # Only instances with the 'orchestrator-instance' tag
             },
             {
                 'Name': 'instance-state-name',
@@ -281,7 +281,7 @@ def get_orchestrator_instance_ip():
                 # Return the Public IP address
                 return public_ip
     
-    print("No running orchestrator-instance found or the instance does not have a public IP address.")
+    print("No running instance found or the instance does not have a public IP address.")
     return None
 
 
