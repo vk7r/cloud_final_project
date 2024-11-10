@@ -14,28 +14,45 @@ except KeyError:
 print(f"Gatekeeper IP: {gatekeeper_ip}")
 
 
-# Define the Gateway URL (replace with your Gateway's public IP)
-GATEWAY_URL = f"http://{gatekeeper_ip}:5000/process"
 
-# Define the payload for the request
+
+"""
+The user should send the following:
+- operation: "READ" or "WRITE" based on the type of request
+- query: The SQL query to be executed
+
+{
+    "operation": "READ",  // or "WRITE" depending on the type of request
+    "query": "SELECT * FROM sakila.actor"  // Example query; adjust based on the use case
+}
+
+
+"""
+
 payload = {
     "operation": "read",  # or "write" based on what you want to test
     "query": "SELECT * FROM actor"  # example query for a read operation
 }
 
-# Send the request to the Gateway
-try:
-    response = requests.post(GATEWAY_URL, json=payload)
-    
-    # Check if the request was successful
-    if response.status_code == 200:
-        print("Response from Gateway:", json.dumps(response.json(), indent=2))
-    else:
-        print(f"Failed with status code {response.status_code}")
-        print("Error response:", response.text)
 
-except requests.exceptions.RequestException as e:
-    print("An error occurred:", e)
+
+# Send the request to the Gateway
+for path in ["directhit", "random", "custom"]:
+    try:
+        # Define the Gateway URL (replace with your Gateway's public IP)
+        GATEWAY_URL = f"http://{gatekeeper_ip}:5000/{path}"
+
+        response = requests.post(GATEWAY_URL, json=payload)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            print("Response from Gateway:", json.dumps(response.json(), indent=2))
+        else:
+            print(f"Failed with status code {response.status_code}")
+            print("Error response:", response.text)
+
+    except requests.exceptions.RequestException as e:
+        print("An error occurred:", e)
 
 # from utils import util_functions as u
 # import globals as g
