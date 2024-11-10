@@ -34,6 +34,48 @@ def process_request():
 def select_worker():
     return random.choice(worker_db_ips)
 
+@app.route('/directhit', methods=['POST'])
+def process_request_directhit():
+    print("##########\n\nReceived request IN PROXY (DIRECT HIT)\n\n##########")
+    
+    # Create the custom response with the required pattern
+    response_data = {
+        "message": "Received request in proxy! DIRECT HIT PATTERN"
+    }
+    
+    # Return the response as JSON
+    return jsonify(response_data)
+
+
+@app.route('/random', methods=['POST'])
+def process_request_random():
+    print("##########\n\nReceived request IN PROXY (RANDOM)\n\n##########")
+    
+    #return random.choice(worker_db_ips)
+
+    # Create the custom response with the required pattern
+    response_data = {
+        "message": "Received request in proxy! RANDOM PATTERN"
+    }
+    
+    # Return the response as JSON
+    return jsonify(response_data)
+
+
+@app.route('/custom', methods=['POST'])
+def process_request_custom():
+    print("##########\n\nReceived request IN PROXY (CUSTOMIZED)\n\n##########")
+    
+    # Create the custom response with the required pattern
+    response_data = {
+        "message": "Received request in proxy! CUSTOMIZED PATTERN"
+    }
+    
+    # Return the response as JSON
+    return jsonify(response_data)
+
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002)
 
