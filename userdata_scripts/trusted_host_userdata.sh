@@ -24,15 +24,41 @@ except KeyError:
 
 app = Flask(__name__)
 
-# Route for internal communication from the Gateway
-@app.route('/process', methods=['POST'])
-def forward_request():
-    print("##########\n\nReceived request IN TRUSTED HOST\n\n##########")
+# Direct Hit Route
+@app.route('/directhit', methods=['POST'])
+def forward_directhit():
+    print("##########\n\nReceived request IN TRUSTED HOST (DIRECT HIT)\n\n##########")
 
     data = request.json
 
-    # Forward request to the Proxy using its private IP
-    proxy_url = f"http://{proxy_ip}:5002/process"
+    # Forward request to Proxy's Direct Hit endpoint
+    proxy_url = f"http://{proxy_ip}:5002/directhit"
+    response = requests.post(proxy_url, json=data)
+
+    return response.json(), response.status_code
+
+# Random Route
+@app.route('/random', methods=['POST'])
+def forward_random():
+    print("##########\n\nReceived request IN TRUSTED HOST (RANDOM)\n\n##########")
+
+    data = request.json
+
+    # Forward request to Proxy's Random endpoint
+    proxy_url = f"http://{proxy_ip}:5002/random"
+    response = requests.post(proxy_url, json=data)
+
+    return response.json(), response.status_code
+
+# Custom Route
+@app.route('/custom', methods=['POST'])
+def forward_custom():
+    print("##########\n\nReceived request IN TRUSTED HOST (CUSTOMIZED)\n\n##########")
+
+    data = request.json
+
+    # Forward request to Proxy's Custom endpoint
+    proxy_url = f"http://{proxy_ip}:5002/custom"
     response = requests.post(proxy_url, json=data)
 
     return response.json(), response.status_code
