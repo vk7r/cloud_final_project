@@ -94,9 +94,11 @@ def createInternalSecurityGroup(vpc_id: str, group_name: str, gatekeeper_securit
     ec2 = session.resource('ec2')
 
     # Create the security group
-    response = ec2.create_security_group(GroupName=group_name,
-                                         Description='Internal security group for instances with restricted access',
-                                         VpcId=vpc_id)
+    response = ec2.create_security_group(
+        GroupName=group_name,
+        Description='Internal security group for instances with restricted access',
+        VpcId=vpc_id
+    )
     security_group_id = response.group_id
     print(f'Internal Security Group Created {security_group_id} in VPC {vpc_id}.')
 
@@ -131,6 +133,20 @@ def createInternalSecurityGroup(vpc_id: str, group_name: str, gatekeeper_securit
                 'IpProtocol': 'tcp',
                 'FromPort': 22,
                 'ToPort': 22,
+                'UserIdGroupPairs': [{'GroupId': gatekeeper_security_group_id}]
+            },
+            # Allow traffic on ports 5000-5003 from instances in the same security group (internal only)
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 5000,
+                'ToPort': 5003,
+                'UserIdGroupPairs': [{'GroupId': security_group_id}]
+            },
+            # Allow traffic on ports 5000-5003 from the Gatekeeper's security group
+            {
+                'IpProtocol': 'tcp',
+                'FromPort': 5000,
+                'ToPort': 5003,
                 'UserIdGroupPairs': [{'GroupId': gatekeeper_security_group_id}]
             }
         ]
@@ -241,3 +257,41 @@ def createInternalInstance(instanceType: str, minCount: int, maxCount: int, key_
         instance.create_tags(Tags=[{'Key': 'Name', 'Value': instance_name}])
     
     return instances
+
+
+def update_sec_group(instance_id, new_security_group_id):
+    session = boto3.Session()
+    ec2 = session.resource('ec2')
+
+    # Get the instance object
+    instance = ec2.Instance(instance_id)
+
+    # Modify the instance's security groups
+    instance.modify_attribute(Groups=[new_security_group_id])
+    print(f"Updated security group for instance {instance_id} to {new_security_group_id}.")
+
+
+def allow_gatekeeper_to_trusted(gatekeeper_sg_id, trusted_sg_id, port=5001):
+    session = boto3.Session()
+    ec2 = session.resource('ec2')
+
+    # Get the trusted host's security group
+    trusted_sg = ec2.SecurityGroup(trusted_sg_id)
+
+    # Authorize inbound rule to allow gatekeeper SG access to the trusted host SG on the specified port (5001)
+    try:
+        trusted_sg.authorize_ingress(
+            IpPermissions=[
+                {
+                    'IpProtocol': 'tcp',
+                    'FromPort': port,
+                    'ToPort': port,
+                    'UserIdGroupPairs': [
+                        {'GroupId': gatekeeper_sg_id}
+                    ]
+                }
+            ]
+        )
+        print(f"Allowed gatekeeper security group {gatekeeper_sg_id} to access trusted host {trusted_sg_id} on port {port}.")
+    except Exception as e:
+        print(f"Error allowing access: {e}")
