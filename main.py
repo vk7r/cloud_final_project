@@ -61,10 +61,10 @@ if __name__ == "__main__":
     time.sleep(180) # Wait for manager to be ready
 
     # Transfer the master config to this machine
-    u.transfer_file_from_ec2(u.get_manager_instance_id(), "/home/ubuntu/MASTER_INFO.txt","config/MASTER_STATUS.txt", g.pem_file_path)
+    u.transfer_file_from_ec2(u.get_manager_instance_id(), "/home/ubuntu/MASTER_INFO.txt","resources/MASTER_STATUS.txt", g.pem_file_path)
     # Parse the txt output and save it as a json file
-    u.parse_master_status("config/MASTER_STATUS.txt", "config/MASTER_CONFIG.json")
-    master_config = u.load_config("config/MASTER_CONFIG.json")
+    u.parse_master_status("resources/MASTER_STATUS.txt", "resources/MASTER_CONFIG.json")
+    master_config = u.load_config("resources/MASTER_CONFIG.json")
 
 
     MANAGER_PRIVATE_IP = u.get_manager_private_ip()
@@ -155,10 +155,10 @@ if __name__ == "__main__":
     # Trusted Host Instance (internal)
     i.createInternalInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, th_userdata, 'trusted-host')
 
-    cip.fetch_and_save_instance_ips()
+    cip.fetch_and_save_instance_ips("resources/instance_ips.json")
     
     # Transfer instance_ips.json to every instance
-    tj.transfer_json_file_to_all(pem_file_path, "instance_ips.json")
+    tj.transfer_json_file_to_all(pem_file_path, "resources/instance_ips.json")
 
     # Transfer the database.py file to the db_worker instances
     tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker1")
