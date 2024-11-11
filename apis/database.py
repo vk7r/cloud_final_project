@@ -1,63 +1,60 @@
 from flask import Flask, request, jsonify
-import mysql.connector
-from mysql.connector import Error
-import json
+import pymysql
 
 app = Flask(__name__)
 
-# Load MySQL host IP from the JSON file
-with open('instance_ips.json', 'r') as f:
-    instance_ips = json.load(f)
+# Database connection settings
+MYSQL_HOST = 'localhost'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'hej'  # Use the password set in the userdata script
+MYSQL_DB = 'sakila'
 
-try:
-    # Assuming the MySQL server runs on the db_manager node
-    mysql_host_ip = instance_ips["db_manager"]["private_ip"]
-except KeyError:
-    raise RuntimeError("MySQL host IP (db_manager) not found in instance_ips.json")
+def connect_to_db():
+    return pymysql.connect(
+        host=MYSQL_HOST,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        database=MYSQL_DB,
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
-# MySQL connection configuration
-db_config = {
-    'user': 'root',                # MySQL user (root)
-    'password': 'hej',             # MySQL root password as per the setup script
-    'host': mysql_host_ip,         # MySQL host IP from the JSON file
-    'database': 'sakila'           # Using the Sakila database as configured
-}
+@app.route('/ping', methods=['GET'])
+def ping():
+    # Respond immediately to indicate the instance is reachable
+    return jsonify({"status": "ok"}), 200
 
 @app.route('/execute', methods=['POST'])
 def execute_query():
     data = request.json
-    query = data.get('query')
 
-    if not query:
-        return jsonify({"error": "No query provided"}), 400
+    # Validate request JSON
+    if 'operation' not in data or 'query' not in data:
+        return jsonify({"status": "error", "error": "Invalid request format"}), 400
+
+    operation = data['operation'].upper()
+    query = data['query']
 
     try:
-        # Connect to MySQL using the defined configuration
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
+        connection = connect_to_db()
+        with connection.cursor() as cursor:
+            # Execute the query based on operation type
+            cursor.execute(query)
+            
+            if operation == 'READ':
+                # Fetch results for read operations
+                result = cursor.fetchall()
+                return jsonify({"status": "success", "data": result}), 200
+            elif operation == 'WRITE':
+                # Commit the transaction for write operations
+                connection.commit()
+                return jsonify({"status": "success", "message": "Write operation completed"}), 200
+            else:
+                return jsonify({"status": "error", "error": "Unknown operation type"}), 400
 
-        # Execute the query and handle the result based on the query type
-        cursor.execute(query)
-        
-        # For SELECT queries, fetch the results
-        if query.strip().upper().startswith('SELECT'):
-            results = cursor.fetchall()
-            columns = [col[0] for col in cursor.description]  # Column names for readability
-            result_list = [dict(zip(columns, row)) for row in results]
-            result = {"results": result_list}
-        else:
-            # For write queries (INSERT, UPDATE, DELETE)
-            conn.commit()
-            result = {"message": "Query executed successfully"}
-
-    except Error as err:
-        # Handle any MySQL errors
-        result = {"error": str(err)}
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
     finally:
-        cursor.close()
-        conn.close()
-
-    return jsonify(result)
+        connection.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5003)
+    app.run(host='0.0.0.0', port=5003)  # Run on port 5003 for database instances
