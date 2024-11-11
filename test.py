@@ -29,30 +29,43 @@ The user should send the following:
 
 """
 
-payload = {
-    "operation": "read",  # or "write" based on what you want to test
+payload_read_all = {
+    "operation": "READ",  # or "write" based on what you want to test
     "query": "SELECT * FROM actor"  # example query for a read operation
 }
 
 
+payload_write = {
+    "operation": "WRITE",  # Specifies that this is a write operation
+    "query": "INSERT INTO actor (first_name, last_name, last_update) VALUES ('John', 'Doe', NOW())"
+}
+
+payload_read_specific = {
+    "operation": "READ",
+    "query": "SELECT * FROM actor WHERE first_name = 'John'"
+}
+
+# from userdata_scripts import generate_user_data as ud
+# print(ud.generate_worker_userdata(1,2,3))
 
 # Send the request to the Gateway
-for path in ["directhit", "random", "custom"]:
-    try:
-        # Define the Gateway URL (replace with your Gateway's public IP)
-        GATEWAY_URL = f"http://{gatekeeper_ip}:5000/{path}"
+for payload in [payload_read_all, payload_write, payload_read_specific]:
+    for path in ["directhit","random", "custom"]:
+        try:
+            # Define the Gateway URL (replace with your Gateway's public IP)
+            GATEWAY_URL = f"http://{gatekeeper_ip}:5000/{path}"
 
-        response = requests.post(GATEWAY_URL, json=payload)
-        
-        # Check if the request was successful
-        if response.status_code == 200:
-            print("Response from Gateway:", json.dumps(response.json(), indent=2))
-        else:
-            print(f"Failed with status code {response.status_code}")
-            print("Error response:", response.text)
+            response = requests.post(GATEWAY_URL, json=payload)
+            
+            # Check if the request was successful
+            if response.status_code == 200:
+                print("Response from Gateway:", json.dumps(response.json(), indent=2))
+            else:
+                print(f"Failed with status code {response.status_code}")
+                print("Error response:", response.text)
 
-    except requests.exceptions.RequestException as e:
-        print("An error occurred:", e)
+        except requests.exceptions.RequestException as e:
+            print("An error occurred:", e)
 
 # from utils import util_functions as u
 # import globals as g
