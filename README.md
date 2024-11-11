@@ -41,7 +41,13 @@ eg:
 # TODO NOTES
 
 REMOVE GUNICORN FROM APIS!!!
+Perform better gatekeeper validation
+- SQL injection check
+- No DROP DB
+- Password?
 
+
+Put INFO.txt and isntance_ips.json in "Resources" or other folder
 
 ## Improve util functions:
 * Remove / Combine unnecessary functions --> Make them general
@@ -50,6 +56,7 @@ REMOVE GUNICORN FROM APIS!!!
 * Make the userdata string modification in main.py a function
 * Make WRITE or READ check a function in proxy.py
 * TA BORT CREATEINTERNALINSTANCE. då den ändå ändras
+* Remove unused/unecessary files (generate_userdata.py)
 
 ## Make global variables and improved names
 * Globals: Usernamne, Password, instance names, etc
@@ -68,4 +75,4 @@ REMOVE GUNICORN FROM APIS!!!
 3. koppla proxy till databaserna --> Behöver DB en API? eller kan Proxyn sköta detta? [KLAR]
 4. Skapa korrekta cloud patterns
 5. Gör instanserna private (förutom gatekeeper) och se om det funkar
-6. Utför sysbench Benchmarking
+6. Utför sysbench + egen Benchmarking
