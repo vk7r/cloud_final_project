@@ -78,8 +78,8 @@ if __name__ == "__main__":
 
     # Configure the database workers userdata
     # worker_userdata = ud.generate_worker_userdata(MANAGER_PRIVATE_IP, master_config["File"], master_config["Position"])
-    
-    # TODO: MAKE AS FUNCTION
+    # print(worker_userdata)
+
     worker_userdata = f"""#!/bin/bash
 
     # Update and install MySQL
@@ -141,6 +141,9 @@ if __name__ == "__main__":
     sudo mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SHOW SLAVE STATUS\\G" | sudo tee "$REPLICATION_STATUS_FILE"
 
     echo "MySQL slave instance setup completed with Sakila database for replication."
+
+    apt-get install python3 python3-pip -y;
+    pip3 install flask requests pymysql --break-system-packages;
     """
 
 
@@ -164,12 +167,22 @@ if __name__ == "__main__":
     # Transfer instance_ips.json to every instance
     tj.transfer_json_file_to_all(pem_file_path, "instance_ips.json")
 
-    print("starting all falsk apps...")
-    time.sleep(240)
+    # Transfer the database.py file to the db_worker instances
+    tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker1")
+    tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker2")
+
+    print("starting all flask apps...")
+    time.sleep(180)
 
     u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("proxy"), g.pem_file_path, "nohup python3 proxy_app.py  > app.log 2>&1 &")
+   
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_manager"), g.pem_file_path, "nohup python3 db_app.py  > app.log 2>&1 &")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_worker1"), g.pem_file_path, "nohup python3 db_app.py  > app.log 2>&1 &")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_worker2"), g.pem_file_path, "nohup python3 db_app.py  > app.log 2>&1 &")
+
+    print("SET UP COMPLETE")
 
     # time.sleep(240)
 
