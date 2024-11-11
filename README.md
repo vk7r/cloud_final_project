@@ -49,6 +49,7 @@ REMOVE GUNICORN FROM APIS!!!
 * Extend the instance_ips.json? --> Each instances port that API runs on, public ip? more?
 * Make the userdata string modification in main.py a function
 * Make WRITE or READ check a function in proxy.py
+* TA BORT CREATEINTERNALINSTANCE. då den ändå ändras
 
 ## Make global variables and improved names
 * Globals: Usernamne, Password, instance names, etc
