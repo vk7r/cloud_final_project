@@ -3,7 +3,7 @@ import json
 from utils import util_functions as u
 
 
-with open('instance_ips.json', 'r') as f:
+with open('resources/instance_ips.json', 'r') as f:
     instance_ips = json.load(f)
 
 try:
