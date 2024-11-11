@@ -66,6 +66,3 @@ def forward_custom():
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
 EOF
-
-# Run the Flask app (or use gunicorn if preferred)
-#gunicorn --bind 0.0.0.0:80 trusted_host_app:app
