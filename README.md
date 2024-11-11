@@ -47,6 +47,8 @@ REMOVE GUNICORN FROM APIS!!!
 * Remove / Combine unnecessary functions --> Make them general
 * Fix repititions. eg. function for trusted request in gatekeeper API
 * Extend the instance_ips.json? --> Each instances port that API runs on, public ip? more?
+* Make the userdata string modification in main.py a function
+* Make WRITE or READ check a function in proxy.py
 
 ## Make global variables and improved names
 * Globals: Usernamne, Password, instance names, etc
@@ -61,7 +63,8 @@ REMOVE GUNICORN FROM APIS!!!
 
 ## TODO IN CODE
 1. Se till att data flöder User --> Proxy --> User [KLAR]
-2. Skapa 3 olika patterns (api paths) i proxy + se till att user kan skicka till respektive pattern och det hittar rätt
-3. koppla proxy till databaserna --> Behöver DB en API? eller kan Proxyn sköta detta?
+2. Skapa 3 olika patterns (api paths) i proxy + se till att user kan skicka till respektive pattern [KLAR]
+3. koppla proxy till databaserna --> Behöver DB en API? eller kan Proxyn sköta detta? [KLAR]
 4. Skapa korrekta cloud patterns
 5. Gör instanserna private (förutom gatekeeper) och se om det funkar
+6. Utför sysbench Benchmarking
