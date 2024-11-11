@@ -39,9 +39,8 @@ if __name__ == "__main__":
         pem_file.write(key_pair.key_material)
     os.chmod(pem_file_path, stat.S_IRUSR) # Change file permissions to 400 to protect the private key
 
-    # Create the required security groups
-    public_security_id = i.createPublicSecurityGroup(vpc_id, g.public_security_group_name)
-    private_security_id = i.createInternalSecurityGroup(vpc_id, g.internal_security_group_name, public_security_id)
+    # Create public security group - used for all instances in the beginning for the setup
+    public_sg_id = i.createPublicSecurityGroup(vpc_id, g.public_security_group_name)
 
     with open('userdata_scripts/manager_data.sh', 'r') as file:
         manager_userdata = file.read()
@@ -56,14 +55,8 @@ if __name__ == "__main__":
         th_userdata = file.read()
 
 
-    # with open('userdata_scripts/worker_data.sh', 'r') as file:
-    #     worker_userdata = file.read()
-
-    # Create instances with the correct security groups and configurations
-
-    # MySQL Manager Instance (internal)
-    # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
-    i.createInternalInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, manager_userdata, 'db_manager')
+    # Manager Instance (internal)
+    i.createInternalInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, manager_userdata, 'db_manager')
 
     time.sleep(180) # Wait for manager to be ready
 
@@ -150,17 +143,17 @@ if __name__ == "__main__":
     # 2x MySQL Worker Instances (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
     print("Creating workers")
-    i.createInternalInstance('t2.micro', 1,1, key_pair, public_security_id, subnet_id, worker_userdata, 'db_worker1')
-    i.createInternalInstance('t2.micro', 1,1, key_pair, public_security_id, subnet_id, worker_userdata, 'db_worker2')
+    i.createInternalInstance('t2.micro', 1,1, key_pair, public_sg_id, subnet_id, worker_userdata, 'db_worker1')
+    i.createInternalInstance('t2.micro', 1,1, key_pair, public_sg_id, subnet_id, worker_userdata, 'db_worker2')
 
     # Proxy Instance (internal)
-    i.createInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, proxy_userdata, 'proxy')
+    i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, proxy_userdata, 'proxy')
 
     # Gatekeeper Instance (public)
-    i.createInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, gateway_userdata, 'gatekeeper')
+    i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, gateway_userdata, 'gatekeeper')
 
     # Trusted Host Instance (internal)
-    i.createInternalInstance('t2.large', 1, 1, key_pair, public_security_id, subnet_id, th_userdata, 'trusted-host')
+    i.createInternalInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, th_userdata, 'trusted-host')
 
     cip.fetch_and_save_instance_ips()
     
@@ -172,7 +165,7 @@ if __name__ == "__main__":
     tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker2")
 
     print("starting all flask apps...")
-    time.sleep(180)
+    time.sleep(240)
 
     u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
@@ -184,7 +177,17 @@ if __name__ == "__main__":
 
     print("SET UP COMPLETE")
 
-    # time.sleep(240)
+    print("Making instances private...")
+    time.sleep(10)
+
+    # Create internal security group
+    private_sg_id = i.createInternalSecurityGroup(vpc_id, g.internal_security_group_name, public_sg_id)
+
+    i.update_sec_group(u.get_instance_id_by_name("trusted-host"), private_sg_id)
+    i.update_sec_group(u.get_instance_id_by_name("proxy"), private_sg_id)
+    i.update_sec_group(u.get_instance_id_by_name("db_manager"), private_sg_id)
+    i.update_sec_group(u.get_instance_id_by_name("db_worker1"), private_sg_id)
+    i.update_sec_group(u.get_instance_id_by_name("db_worker2"), private_sg_id)
 
     # TODO: AFTER CONFIG CHANGE THE SECURITY GROUPS TO PRIVATE!!!
     
