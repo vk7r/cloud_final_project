@@ -4,8 +4,10 @@ pem_file_path = "/home/arshavin/.aws/key.pem"
 aws_folder_path = "/home/arshavin/.aws"
 
 key_pair_name = "key_pair_name"
-public_security_group_name = "public_security_group_name13443545445445743442315448"
-internal_security_group_name = "internal_security_group_3n4a44335454574544244me4354181"
+public_security_group_name = "public_security_group_name4l4ol2"
+internal_security_group_name = "internal_security_gro4up_lol43"
+
+GATEKEEPER_PASSWORD = "your_secure_password"
 
 # Log into MySQL
 # sudo mysql -u root -p
