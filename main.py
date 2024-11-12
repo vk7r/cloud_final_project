@@ -165,7 +165,7 @@ if __name__ == "__main__":
     tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker2")
 
     print("starting all flask apps...")
-    time.sleep(240)
+    time.sleep(260)
 
     u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
