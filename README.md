@@ -46,6 +46,8 @@ Perform better gatekeeper validation
 - No DROP DB
 - Password?
 
+Remove /forward unused pattern in proxy
+
 
 Put INFO.txt and isntance_ips.json in "Resources" or other folder
 
