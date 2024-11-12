@@ -13,6 +13,19 @@ except KeyError:
 
 app = Flask(__name__)
 
+# Define the hardcoded password (ideally, this should be set as an environment variable)
+GATEKEEPER_PASSWORD = "your_secure_password"
+
+# Authentication Middleware
+# Is always run before any request is processed
+@app.before_request
+def authenticate():
+    # Check for the password in the headers
+    password = request.headers.get("X-Gatekeeper-Password")
+    if password != GATEKEEPER_PASSWORD:
+        # If password is incorrect, deny access
+        return jsonify({"status": "error", "error": "Unauthorized access"}), 403
+
 # Direct Hit Route
 @app.route('/directhit', methods=['POST'])
 def directhit():
