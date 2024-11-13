@@ -123,5 +123,9 @@ def execute_query():
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5003)  # Run on port 5003 for database instances
 EOF
-
 echo "Flask app created for database instance."
+
+sudo apt-get install sysbench -y
+
+sudo sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sakila --mysql-user="root" --mysql-password="$MYSQL_ROOT_PASSWORD" prepare
+
