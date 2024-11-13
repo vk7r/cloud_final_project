@@ -137,6 +137,8 @@ if __name__ == "__main__":
 
     apt-get install python3 python3-pip -y;
     pip3 install flask requests pymysql --break-system-packages;
+
+    sudo apt-get install sysbench -y;
     """
 
 
@@ -164,9 +166,23 @@ if __name__ == "__main__":
     tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker1")
     tj.transfer_file_to_instance(pem_file_path, "apis/database.py", "db_app.py", "db_worker2")
 
-    print("starting all flask apps...")
-    time.sleep(260)
+    time.sleep(270)
 
+    print("Running sysbench on the db_manager and db_worker instances...")
+    # Run sysbench on the db_manager and db_worker instances
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_manager"), g.pem_file_path, 'sudo sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sakila --mysql-user="root" --mysql-password="hej" run > sysbench_results.txt')
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_worker1"), g.pem_file_path, 'sudo sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sakila --mysql-user="root" --mysql-password="hej" run > sysbench_results.txt')
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_worker2"), g.pem_file_path, 'sudo sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sakila --mysql-user="root" --mysql-password="hej" run > sysbench_results.txt')
+    
+    time.sleep(10)
+
+    # Collect results from sysbench
+    u.transfer_file_from_ec2(u.get_instance_id_by_name("db_manager"), "/home/ubuntu/sysbench_results.txt", "test_results/sysbench_results_manager.txt", g.pem_file_path)
+    u.transfer_file_from_ec2(u.get_instance_id_by_name("db_worker1"), "/home/ubuntu/sysbench_results.txt", "test_results/sysbench_results_worker1.txt", g.pem_file_path)
+    u.transfer_file_from_ec2(u.get_instance_id_by_name("db_worker2"), "/home/ubuntu/sysbench_results.txt", "test_results/sysbench_results_worker2.txt", g.pem_file_path)
+
+    print("starting all flask apps...")
+    # Start the flask apps
     u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("proxy"), g.pem_file_path, "nohup python3 proxy_app.py  > app.log 2>&1 &")
@@ -183,11 +199,10 @@ if __name__ == "__main__":
     # Create internal security group
     private_sg_id = i.createInternalSecurityGroup(vpc_id, g.internal_security_group_name, public_sg_id)
 
+    # Update security groups
     i.update_sec_group(u.get_instance_id_by_name("trusted-host"), private_sg_id)
     i.update_sec_group(u.get_instance_id_by_name("proxy"), private_sg_id)
     i.update_sec_group(u.get_instance_id_by_name("db_manager"), private_sg_id)
     i.update_sec_group(u.get_instance_id_by_name("db_worker1"), private_sg_id)
     i.update_sec_group(u.get_instance_id_by_name("db_worker2"), private_sg_id)
-
-    # TODO: AFTER CONFIG CHANGE THE SECURITY GROUPS TO PRIVATE!!!
     
