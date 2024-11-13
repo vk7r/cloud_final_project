@@ -45,8 +45,8 @@ if __name__ == "__main__":
     with open('userdata_scripts/manager_data.sh', 'r') as file:
         manager_userdata = file.read()
 
-    with open('userdata_scripts/gateway_userdata.sh', 'r') as file:
-        gateway_userdata = file.read()
+    with open('userdata_scripts/gatekeeper_userdata.sh', 'r') as file:
+        gatekeeper_userdata = file.read()
 
     with open('userdata_scripts/proxy_userdata.sh', 'r') as file:
         proxy_userdata = file.read()
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
 
     # Manager Instance (internal)
-    i.createInternalInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, manager_userdata, 'db_manager')
+    i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, manager_userdata, 'db_manager')
 
     time.sleep(180) # Wait for manager to be ready
 
@@ -145,17 +145,17 @@ if __name__ == "__main__":
     # 2x MySQL Worker Instances (internal)
     # ANVÄNDER PUBLIC SECURITY GROUP I BÖRJAN
     print("Creating workers")
-    i.createInternalInstance('t2.micro', 1,1, key_pair, public_sg_id, subnet_id, worker_userdata, 'db_worker1')
-    i.createInternalInstance('t2.micro', 1,1, key_pair, public_sg_id, subnet_id, worker_userdata, 'db_worker2')
+    i.createInstance('t2.micro', 1,1, key_pair, public_sg_id, subnet_id, worker_userdata, 'db_worker1')
+    i.createInstance('t2.micro', 1,1, key_pair, public_sg_id, subnet_id, worker_userdata, 'db_worker2')
 
     # Proxy Instance (internal)
     i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, proxy_userdata, 'proxy')
 
     # Gatekeeper Instance (public)
-    i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, gateway_userdata, 'gatekeeper')
+    i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, gatekeeper_userdata, 'gatekeeper')
 
     # Trusted Host Instance (internal)
-    i.createInternalInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, th_userdata, 'trusted-host')
+    i.createInstance('t2.large', 1, 1, key_pair, public_sg_id, subnet_id, th_userdata, 'trusted-host')
 
     cip.fetch_and_save_instance_ips("resources/instance_ips.json")
     
@@ -181,9 +181,21 @@ if __name__ == "__main__":
     u.transfer_file_from_ec2(u.get_instance_id_by_name("db_worker1"), "/home/ubuntu/sysbench_results.txt", "test_results/sysbench_results_worker1.txt", g.pem_file_path)
     u.transfer_file_from_ec2(u.get_instance_id_by_name("db_worker2"), "/home/ubuntu/sysbench_results.txt", "test_results/sysbench_results_worker2.txt", g.pem_file_path)
 
+    time.sleep(5)
+
+    print("installing flask on insatnces")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "pip3 install flask requests --break-system-packages;")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "pip3 install flask requests --break-system-packages;")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("proxy"), g.pem_file_path, "pip3 install flask requests --break-system-packages;")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_manager"), g.pem_file_path, "pip3 install flask requests --break-system-packages;")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_worker1"), g.pem_file_path, "pip3 install flask requests --break-system-packages;")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("db_worker2"), g.pem_file_path, "pip3 install flask requests --break-system-packages;")
+
+    time.sleep(15)
+
     print("starting all flask apps...")
     # Start the flask apps
-    u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gateway_app.py > app.log 2>&1 &")
+    u.ssh_and_run_command(u.get_instance_ip_by_name("gatekeeper"), g.pem_file_path, "nohup python3 gatekeeper_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("trusted-host"), g.pem_file_path, "nohup python3 trusted_host_app.py > app.log 2>&1 &")
     u.ssh_and_run_command(u.get_instance_ip_by_name("proxy"), g.pem_file_path, "nohup python3 proxy_app.py  > app.log 2>&1 &")
    
@@ -206,3 +218,4 @@ if __name__ == "__main__":
     i.update_sec_group(u.get_instance_id_by_name("db_worker1"), private_sg_id)
     i.update_sec_group(u.get_instance_id_by_name("db_worker2"), private_sg_id)
     
+    time.sleep(5)
