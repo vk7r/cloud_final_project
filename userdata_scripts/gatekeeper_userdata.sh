@@ -8,7 +8,7 @@ apt-get install python3 python3-pip -y;
 pip3 install flask torch transformers requests gunicorn --break-system-packages;
 
 
-cat <<EOF > /home/ubuntu/gateway_app.py
+cat <<EOF > /home/ubuntu/gatekeeper_app.py
 from flask import Flask, request, jsonify
 import requests
 import json
