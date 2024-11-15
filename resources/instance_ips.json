@@ -1,21 +1,21 @@
 {
     "Gateway": {
-        "public_ip": "44.211.193.68",
-        "private_ip": "172.31.94.216"
+        "public_ip": "54.210.26.246",
+        "private_ip": "172.31.86.121"
     },
     "Trusted_host": {
-        "private_ip": "172.31.87.76"
+        "private_ip": "172.31.86.165"
     },
     "Proxy": {
-        "private_ip": "172.31.82.168"
+        "private_ip": "172.31.88.57"
     },
     "db_manager": {
-        "private_ip": "172.31.88.33"
+        "private_ip": "172.31.90.108"
     },
     "db_worker1": {
-        "private_ip": "172.31.86.199"
+        "private_ip": "172.31.80.64"
     },
     "db_worker2": {
-        "private_ip": "172.31.87.230"
+        "private_ip": "172.31.86.242"
     }
 }
