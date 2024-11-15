@@ -1,80 +1,15 @@
-# cloud_final_project
-Advanced cloud computing - Final Poject
+# Advanced Concepts in Cloud Computing - Final Poject
 
-User/Application → Gatekeeper (validates request)
-Gatekeeper → Trusted Host (internal processing)
-Trusted Host → Proxy (routes request)
-Proxy → Manager/Worker Node (handles read/write operation)
-Response travels back: Worker/Manager → Proxy → Trusted Host → Gatekeeper → User/Application
+This project demonstrates the implementation of **Cloud Design Patterns** using a MySQL cluster on AWS EC2 instances. The solution integrates the **Proxy Pattern** and **Gatekeeper Pattern** to create a scalable, secure, and efficient database architecture.
 
+The Proxy Pattern is employed to handle read and write operations efficiently across a distributed MySQL cluster. Three distinct implementations are provided: 
+1. **Direct Hit**: Requests are directly routed to the manager node without distribution logic.
+2. **Random**: Read requests are routed to a randomly selected worker node.
+3. **Customized**: Requests are routed based on the response time of worker nodes for optimal performance.
 
-# Expected User Responses
+The Gatekeeper Pattern adds an additional security layer by introducing an **internet-facing gatekeeper** and a **trusted host** to validate and route requests securely to the MySQL cluster.
 
-### What The User Sends
-The user should send the following:
-- operation: "READ" or "WRITE" based on the type of request
-- query: The SQL query to be executed
+The project also includes benchmarking with **sysbench** to measure the performance of the cluster and automation scripts for end-to-end deployment using AWS SDKs. This ensures the architecture is robust, secure, and easy to replicate.
 
-eg:
-
-{
-    "operation": "READ",
-    "query": "SELECT * FROM sakila.actor"
-}
-
-### SUCCESSFUL WRITE OPERAION:
-{
-    "status": "success",
-    "message": "Record inserted successfully",
-    "affected_rows": 1
-}
-
-### SUCCESSFUL READ OPERATION:
-{
-    "status": "error",
-    "error": "Syntax error in SQL query",
-    "details": "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version"
-}
-
-
-
-# TODO NOTES
-
-REMOVE GUNICORN FROM APIS!!!
-Perform better gatekeeper validation
-- SQL injection check
-- No DROP DB
-- Password?
-
-Remove /forward unused pattern in proxy
-
-
-Put INFO.txt and isntance_ips.json in "Resources" or other folder
-
-## Improve util functions:
-* Remove / Combine unnecessary functions --> Make them general
-* Fix repititions. eg. function for trusted request in gatekeeper API
-* Extend the instance_ips.json? --> Each instances port that API runs on, public ip? more?
-* Make the userdata string modification in main.py a function
-* Make WRITE or READ check a function in proxy.py
-* TA BORT CREATEINTERNALINSTANCE. då den ändå ändras
-* Remove unused/unecessary files (generate_userdata.py)
-
-## Make global variables and improved names
-* Globals: Usernamne, Password, instance names, etc
-* rename gateway to gatekeepet (correct?)
-* better names and keep it in the same standard (snakecase?)
-
-## Fix file structure
-* Better names
-* Combine similar files
-* Separate code from files that might not fit in with eachother
-* New folders --> Test?
-
-## TODO IN CODE
-1. Se till att data flöder User --> Proxy --> User [KLAR]
-2. Skapa 3 olika patterns (api paths) i proxy + se till att user kan skicka till respektive pattern [KLAR]
-3. koppla proxy till databaserna --> Behöver DB en API? eller kan Proxyn sköta detta? [KLAR]
-4. Skapa korrekta cloud patterns
-5. Gör instanserna private (förutom gatekeeper) och se om det funkar
-6. Utför sysbench + egen Benchmarking
+## System Design:
+![General System Design](final_proj_systemdesign.png "System Design")
