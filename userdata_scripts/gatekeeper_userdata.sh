@@ -25,7 +25,7 @@ except KeyError:
 app = Flask(__name__)
 
 # Define the hardcoded password (ideally, this should be set as an environment variable)
-GATEKEEPER_PASSWORD = "your_secure_password"
+GATEKEEPER_PASSWORD = "password"
 
 # Authentication Middleware
 # Is always run before any request is processed
