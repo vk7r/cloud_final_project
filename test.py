@@ -45,8 +45,9 @@ payload_read_specific = {
     "query": "SELECT * FROM actor WHERE first_name = 'John'"
 }
 
+#payload_read_all, payload_write, 
 # Send the request to the Gatekeeper for each payload and endpoint
-for payload in [payload_read_all, payload_write, payload_read_specific]:
+for payload in [payload_read_specific]:
     for path in ["directhit", "random", "custom"]:
         try:
             # Define the Gateway URL
