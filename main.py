@@ -69,10 +69,6 @@ if __name__ == "__main__":
 
     MANAGER_PRIVATE_IP = u.get_manager_private_ip()
 
-    # Configure the database workers userdata
-    # worker_userdata = ud.generate_worker_userdata(MANAGER_PRIVATE_IP, master_config["File"], master_config["Position"])
-    # print(worker_userdata)
-
     worker_userdata = f"""#!/bin/bash
 
     # Update and install MySQL
