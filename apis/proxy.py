@@ -34,14 +34,21 @@ def measure_instance_response_time(ip):
 
 app = Flask(__name__)
 
-@app.route('/process', methods=['POST'])
-def process_request():
-    print("##########\n\nReceived request IN PROXY\n\n##########")
-    data = request.json
-    return data
-
 @app.route('/directhit', methods=['POST'])
 def process_request_directhit():
+    """
+    Route: /directhit
+    Method: POST
+    
+    Description:
+    This route always forwards the request to the manager database instance
+    and returns the response from the manager. It also appends metadata
+    about the request pattern and selected instance to the response.
+    
+    Returns:
+        - JSON: Response from the manager instance with added metadata.
+        - 500: If there is an error communicating with the manager instance.
+    """
     print("##########\n\nReceived request IN PROXY (DIRECT HIT)\n\n##########")
     
     data = request.json
@@ -64,8 +71,26 @@ def process_request_directhit():
             "selected_instance": MANAGER_IP
         }), 500
 
+
 @app.route('/random', methods=['POST'])
 def process_request_random():
+    """
+    Route: /random
+    Method: POST
+    
+    Description:
+    Forwards the request to a randomly selected database instance based on
+    the type of operation:
+      - WRITE: Always goes to the manager database instance.
+      - READ: Randomly selects one of the worker database instances.
+      
+    Appends metadata about the request pattern and selected instance to the response.
+    
+    Returns:
+        - JSON: Response from the selected instance with added metadata.
+        - 400: If the operation type is invalid.
+        - 500: If there is an error communicating with the selected instance.
+    """
     print("##########\n\nReceived request IN PROXY (RANDOM)\n\n##########")
     
     data = request.json
@@ -102,8 +127,29 @@ def process_request_random():
             "selected_instance": selected_instance
         }), 500
 
+
 @app.route('/custom', methods=['POST'])
 def process_request_custom():
+    """
+    Route: /custom
+    Method: POST
+    
+    Description:
+    Selects the target database instance based on operation type and worker response times:
+      - WRITE: Always forwards to the manager database instance.
+      - READ: Selects the fastest available worker database instance based on
+        measured response times.
+      
+    Returns an error if all workers are unavailable.
+    Appends metadata about the request pattern, selected instance, and (if applicable)
+    the response time of the chosen worker to the response.
+    
+    Returns:
+        - JSON: Response from the selected instance with added metadata.
+        - 400: If the operation type is invalid.
+        - 503: If all worker instances are unavailable.
+        - 500: If there is an error communicating with the selected instance.
+    """
     print("##########\n\nReceived request IN PROXY (CUSTOMIZED)\n\n##########")
     
     data = request.json
@@ -161,6 +207,6 @@ def process_request_custom():
             "pattern": pattern,
             "selected_instance": selected_instance
         }), 500
-
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002)
