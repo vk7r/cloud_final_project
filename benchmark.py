@@ -16,7 +16,7 @@ except KeyError:
 
 print(f"Gatekeeper IP: {gatekeeper_ip}")
 
-# Define the password for the Gatekeeper
+# Oassword for the Gatekeeper
 GATEKEEPER_PASSWORD = g.GATEKEEPER_PASSWORD  # Replace with actual password
 
 ITERATIONS = 1000
